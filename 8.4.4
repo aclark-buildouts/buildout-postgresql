@@ -1,0 +1,46 @@
+[buildout]
+extensions = buildout.bootstrap
+parts =
+    postgres
+    supervisor
+    postgres-conf
+    pg-hba-conf
+    pg-ident-conf
+    initdb
+
+[postgres]
+recipe = hexagonit.recipe.cmmi
+url = http://ftp9.us.postgresql.org/pub/mirrors/postgresql/source/v8.4.4/postgresql-8.4.4.tar.gz
+keep-compile-dir = true
+
+[supervisor]
+recipe = collective.recipe.supervisor
+port = 9001
+serverurl = http://127.0.0.1:9001
+programs = 
+    10 postgres ${postgres:location}/bin/postmaster [ --config-file=${buildout:directory}/etc/postgresql.conf ]
+
+[postgres-conf]
+recipe = collective.recipe.template
+input = http://pythonpackages.com/buildout/postgresql/8.4.4/conf/postgresql.conf.in
+output = ${buildout:directory}/etc/postgresql.conf
+
+[pg-hba-conf]
+recipe = collective.recipe.template
+input = http://pythonpackages.com/buildout/postgresql/8.4.4/conf/pg_hba.conf.in
+output = ${buildout:directory}/etc/pg_hba.conf
+
+[pg-ident-conf]
+recipe = collective.recipe.template
+input = http://pythonpackages.com/buildout/postgresql/8.4.4/conf/pg_ident.conf.in
+output = ${buildout:directory}/etc/pg_ident.conf
+
+[initdb]
+recipe = plone.recipe.command
+command = 
+    ${postgres:location}/bin/initdb ${buildout:directory}/data
+update-command =
+    ${postgres:location}/bin/initdb ${buildout:directory}/data
+
+[ports]
+postgres = 5433
